@@ -13,10 +13,10 @@
             "template.openshift.io/documentation-url": "https://access.redhat.com/documentation/en/red-hat-single-sign-on/",
             "template.openshift.io/support-url": "https://access.redhat.com"
         },
-        "name": "sso72-https-postgresql-external"
+        "name": "sso74-https-postgresql-external"
     },
     "labels": {
-        "template": "sso72-https-postgresql-external",
+        "template": "sso74-https-postgresql-external",
         "xpaas": "1.4.13"
     },
     "message": "A new RH-SSO service has been created in your project. The admin username/password for accessing the master realm via the RH-SSO console is ${SSO_ADMIN_USERNAME}/${SSO_ADMIN_PASSWORD}. Please be sure to create the following secrets: \"${HTTPS_SECRET}\" containing the ${HTTPS_KEYSTORE} file used for serving secure content; \"${JGROUPS_ENCRYPT_SECRET}\" containing the ${JGROUPS_ENCRYPT_KEYSTORE} file used for securing JGroups communications; \"${SSO_TRUSTSTORE_SECRET}\" containing the ${SSO_TRUSTSTORE} file used for securing RH-SSO requests.",
@@ -452,7 +452,7 @@
                         "from": {
                             "kind": "ImageStreamTag",
                             "namespace": "${IMAGE_STREAM_NAMESPACE}",
-                            "name": "redhat-sso72-openshift:1.1"
+                            "name": "sso74-openshift-rhel8:latest"
                         }
                     }
                 },
