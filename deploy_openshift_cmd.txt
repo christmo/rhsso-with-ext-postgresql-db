@@ -7,6 +7,7 @@ $ ./oc create -f 5542926_dinersclub-rhsso-secret.yaml
 $ ./oc get secret
 
 $ ./oc secrets link default 5542926-dinersclub-rhsso-pull-secret --for=pull
+$ ./oc secrets link builder 5542926-dinersclub-rhsso-pull-secret
 
 $ ./oc import-image sso74-openshift-rhel8:latest --confirm --scheduled --from=registry.redhat.io/rh-sso-7/sso74-openshift-rhel8:latest
 
@@ -51,12 +52,12 @@ $ ./oc create secret generic sso-app-secret --from-file=keystore.jks --from-file
 
 $ ./oc secrets link default sso-app-secret
 
-$ secret/redhat-connect-sso
+---> NO $ secret/redhat-connect-sso
 
 $ ./oc process dinersclub-rhsso//sso74-https-postgresql-external \
 -p APPLICATION_NAME=dinersclub-rhsso-app \
 -p IMAGE_STREAM_NAMESPACE=dinersclub-rhsso \
--p SOURCE_REPOSITORY_URL=https://github.com/xavier8a/rhsso-with-ext-postgresql-db \
+-p SOURCE_REPOSITORY_URL=https://github.com/christmo/rhsso-with-ext-postgresql-db \
 -p SOURCE_REPOSITORY_REF=master \
 -p DB_DATABASE=rhsso \
 -p DB_USERNAME=postgres \
@@ -80,7 +81,7 @@ $ ./oc process dinersclub-rhsso//sso74-https-postgresql-external \
 -p SSO_TRUSTSTORE=truststore.jks \
 -p SSO_TRUSTSTORE_PASSWORD=interdin.1 \
 -p SSO_TRUSTSTORE_SECRET=sso-app-secret \
-| ./oc create -f -
+| oc create -f -
 
 
 https://docs.openshift.com/dedicated/4/openshift_images/managing_images/using-image-pull-secrets.html#images-update-global-pull-secret_using-image-pull-secrets
