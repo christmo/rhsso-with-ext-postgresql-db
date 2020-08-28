@@ -1,0 +1,94 @@
+
+
+$ ./oc project dinersclub-rhsso
+
+$ ./oc create -f 5542926_dinersclub-rhsso-secret.yaml
+
+$ ./oc get secret
+
+$ ./oc secrets link default 5542926-dinersclub-rhsso-pull-secret --for=pull
+
+$ ./oc import-image sso74-openshift-rhel8:latest --confirm --scheduled --from=registry.redhat.io/rh-sso-7/sso74-openshift-rhel8:latest
+
+$ ./oc create serviceaccount sso-service-account
+
+$ ./oc policy add-role-to-user view system:serviceaccount:$(oc project -q):sso-service-account
+
+$ ./oc create -f sso74-https-postgresql-external.json -n dinersclub-rhsso
+
+$ ./oc get templates -n dinersclub-rhsso -o name | grep -o 'sso.\+'
+
+------- 
+
+$ ./oc create secret docker-registry \
+    --docker-server=sso.redhat.com \
+    --docker-username=larevalo@dinersclub.com.ec \
+    --docker-password=******** \
+    --docker-email=unused \
+    redhat-connect-sso
+
+$ ./oc set data secret/5542926-dinersclub-rhsso-pull-secret -n dinersclub-rhsso --from-file=.dockerconfigjson=clave.txt
+
+$ openssl req -new -newkey rsa:4096 -x509 -keyout xpaas.key -out xpaas.crt -days 365 -subj "/CN=xpaas-sso-demo.ca"
+
+$ keytool -genkeypair -keyalg RSA -keysize 2048 -dname "CN=secure-sso-sso-app-demo.openshift.example.com" -alias jboss -keystore keystore.jks
+
+$ keytool -certreq -keyalg rsa -alias jboss -keystore keystore.jks -file sso.csr
+
+$ openssl x509 -req -CA xpaas.crt -CAkey xpaas.key -in sso.csr -out sso.crt -days 365 -CAcreateserial
+
+$ keytool -import -file xpaas.crt -alias xpaas.ca -keystore keystore.jks
+
+$ keytool -import -file sso.crt -alias jboss -keystore keystore.jks
+
+$ keytool -genseckey -alias secret-key -storetype JCEKS -keystore jgroups.jceks
+
+$ keytool -import -file xpaas.crt -alias xpaas.ca -keystore truststore.jks
+
+----------
+
+$ ./oc create secret generic sso-app-secret --from-file=keystore.jks --from-file=jgroups.jceks --from-file=truststore.jks
+
+$ ./oc secrets link default sso-app-secret
+
+$ secret/redhat-connect-sso
+
+$ ./oc process dinersclub-rhsso//sso74-https-postgresql-external \
+-p APPLICATION_NAME=dinersclub-rhsso-app \
+-p IMAGE_STREAM_NAMESPACE=dinersclub-rhsso \
+-p SOURCE_REPOSITORY_URL=https://github.com/xavier8a/rhsso-with-ext-postgresql-db \
+-p SOURCE_REPOSITORY_REF=master \
+-p DB_DATABASE=rhsso \
+-p DB_USERNAME=postgres \
+-p DB_PASSWORD=ASWDlki8uh \
+-p HOSTNAME_HTTP=dev-canales-core-rds.cnzcvk18uafk.us-east-1.rds.amazonaws.com \
+-p SSO_POSTGRESQL_SERVICE_HOST=dev-canales-core-rds.cnzcvk18uafk.us-east-1.rds.amazonaws.com \
+-p SSO_POSTGRESQL_SERVICE_PORT=5436 \
+-p HTTPS_KEYSTORE=keystore.jks \
+-p HTTPS_KEYSTORE_TYPE=jks \
+-p HTTPS_NAME=jboss \
+-p HTTPS_PASSWORD=interdin.1 \
+-p JGROUPS_ENCRYPT_SECRET=sso-app-secret \
+-p JGROUPS_ENCRYPT_KEYSTORE=jgroups.jceks \
+-p JGROUPS_ENCRYPT_NAME=secret-key \
+-p JGROUPS_ENCRYPT_PASSWORD=interdin.1 \
+-p SSO_ADMIN_USERNAME=administrator \
+-p SSO_ADMIN_PASSWORD=interdin.1 \
+-p SSO_REALM=DinersClub \
+-p SSO_SERVICE_USERNAME=sso \
+-p SSO_SERVICE_PASSWORD=interdin.1 \
+-p SSO_TRUSTSTORE=truststore.jks \
+-p SSO_TRUSTSTORE_PASSWORD=interdin.1 \
+-p SSO_TRUSTSTORE_SECRET=sso-app-secret \
+| ./oc create -f -
+
+
+https://docs.openshift.com/dedicated/4/openshift_images/managing_images/using-image-pull-secrets.html#images-update-global-pull-secret_using-image-pull-secrets
+
+https://github.com/travisrogers05/rhsso-with-ext-postgresql-db
+
+https://access.redhat.com/documentation/en-us/red_hat_single_sign-on/7.4/html/red_hat_single_sign-on_for_openshift_on_openjdk/advanced_concepts#sso-connecting-to-an-external-database
+
+https://access.redhat.com/solutions/3182631
+
+https://access.redhat.com/documentation/en-us/red_hat_single_sign-on/7.3/html/red_hat_single_sign-on_for_openshift/get_started
