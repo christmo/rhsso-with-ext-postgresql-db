@@ -21,13 +21,6 @@ $ ./oc get templates -n dinersclub-rhsso -o name | grep -o 'sso.\+'
 
 ------- 
 
-$ ./oc create secret docker-registry \
-    --docker-server=sso.redhat.com \
-    --docker-username=larevalo@dinersclub.com.ec \
-    --docker-password=******** \
-    --docker-email=unused \
-    redhat-connect-sso
-
 $ ./oc set data secret/5542926-dinersclub-rhsso-pull-secret -n dinersclub-rhsso --from-file=.dockerconfigjson=clave.txt
 
 $ openssl req -new -newkey rsa:4096 -x509 -keyout xpaas.key -out xpaas.crt -days 365 -subj "/CN=xpaas-sso-demo.ca"
@@ -52,7 +45,14 @@ $ ./oc create secret generic sso-app-secret --from-file=keystore.jks --from-file
 
 $ ./oc secrets link default sso-app-secret
 
----> NO $ secret/redhat-connect-sso
+Antes de Desplegar crear la base de datos en postgres, entramos al cluster de Openshift con un contenedor cliente de la
+Base de datos para ejecutar los siguientes comandos para crear la base rhsso:
+
+$ oc run postgres-test --image=postgres -i -t --restart=Never --rm -- /bin/sh
+contenedor $> psql -h dev-canales-core-rds.cnzcvk18uafk.us-east-1.rds.amazonaws.com  -p 5436 -U postgres -W
+contenedor $> Agregar la clave de la base de datos
+contenedor $> create database rhsso;
+contenedor $> \q
 
 $ ./oc process dinersclub-rhsso//sso74-https-postgresql-external \
 -p APPLICATION_NAME=dinersclub-rhsso-app \
